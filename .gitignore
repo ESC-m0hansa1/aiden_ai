@@ -1,0 +1,29 @@
+# Secrets - never commit the real key
+.env
+
+# Virtual environment
+.venv/
+venv/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Generated documents (output artifacts, not source)
+output/
+*.docx
+!tests/fixtures/*.docx
+
+# Editor / OS
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini
+
+# Local editor/tooling config
+.claude/
+
+/DEMO_SCRIPT.md
+/INTERVIEW_PREP.md
+/PROGRESS.md

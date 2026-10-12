@@ -1,0 +1,71 @@
+{
+  "id": "nda",
+  "name": "Non-Disclosure Agreement",
+  "description": "Mutual confidentiality agreement for sharing sensitive information during an evaluation or partnership.",
+  "title": "NON-DISCLOSURE AGREEMENT",
+  "subtitle": "between {{ disclosing_party }} and {{ receiving_party }}",
+  "fields": [
+    {
+      "id": "disclosing_party",
+      "label": "Disclosing party",
+      "type": "text",
+      "required": true,
+      "max_length": 120,
+      "placeholder": "Northwind Logistics Pvt Ltd",
+      "help": "The organisation sharing the confidential information."
+    },
+    {
+      "id": "receiving_party",
+      "label": "Receiving party",
+      "type": "text",
+      "required": true,
+      "max_length": 120,
+      "placeholder": "Bluefin Analytics LLP",
+      "help": "The organisation receiving the confidential information."
+    },
+    {
+      "id": "effective_date",
+      "label": "Effective date",
+      "type": "date",
+      "required": true,
+      "help": "The date the agreement starts."
+    },
+    {
+      "id": "purpose",
+      "label": "Purpose of disclosure",
+      "type": "textarea",
+      "required": true,
+      "max_length": 500,
+      "placeholder": "evaluating a supply-chain forecasting pilot",
+      "help": "Why the information is being shared. Completes the sentence 'The parties wish to explore ...'."
+    },
+    {
+      "id": "term_months",
+      "label": "Term (months)",
+      "type": "integer",
+      "required": true,
+      "min": 1,
+      "max": 120,
+      "default": 24,
+      "help": "How long the confidentiality obligations last."
+    },
+    {
+      "id": "jurisdiction",
+      "label": "Governing jurisdiction",
+      "type": "text",
+      "required": true,
+      "max_length": 120,
+      "placeholder": "Karnataka, India",
+      "help": "Whose law governs the agreement."
+    },
+    {
+      "id": "confidential_scope",
+      "label": "Specific confidential information (optional)",
+      "type": "textarea",
+      "required": false,
+      "max_length": 500,
+      "placeholder": "pricing models, customer lists and route optimisation data",
+      "help": "Leave blank to use the standard broad definition."
+    }
+  ]
+}

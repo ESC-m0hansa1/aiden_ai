@@ -1,0 +1,90 @@
+{
+  "id": "service_agreement",
+  "name": "Service Agreement",
+  "description": "Agreement for a provider delivering defined services to a client for a fee.",
+  "title": "SERVICE AGREEMENT",
+  "subtitle": "between {{ client_name }} and {{ provider_name }}",
+  "fields": [
+    {
+      "id": "client_name",
+      "label": "Client",
+      "type": "text",
+      "required": true,
+      "max_length": 120,
+      "placeholder": "Northwind Logistics Pvt Ltd",
+      "help": "The organisation paying for the services."
+    },
+    {
+      "id": "provider_name",
+      "label": "Service provider",
+      "type": "text",
+      "required": true,
+      "max_length": 120,
+      "placeholder": "Bluefin Analytics LLP",
+      "help": "The organisation delivering the services."
+    },
+    {
+      "id": "effective_date",
+      "label": "Effective date",
+      "type": "date",
+      "required": true,
+      "help": "The date the engagement starts."
+    },
+    {
+      "id": "services",
+      "label": "Services to be provided",
+      "type": "textarea",
+      "required": true,
+      "max_length": 800,
+      "placeholder": "design, build and maintain a demand forecasting dashboard",
+      "help": "Describe the scope of work. Completes the sentence 'The Provider shall ...'."
+    },
+    {
+      "id": "fee_amount",
+      "label": "Fee",
+      "type": "text",
+      "required": true,
+      "max_length": 60,
+      "placeholder": "INR 2,50,000 per month",
+      "help": "Include the currency and whether it is per month, per milestone or fixed."
+    },
+    {
+      "id": "payment_terms",
+      "label": "Payment terms",
+      "type": "text",
+      "required": true,
+      "max_length": 120,
+      "placeholder": "within 30 days of invoice",
+      "help": "When the client must pay after being invoiced."
+    },
+    {
+      "id": "term_months",
+      "label": "Term (months)",
+      "type": "integer",
+      "required": true,
+      "min": 1,
+      "max": 120,
+      "default": 12,
+      "help": "How long the engagement runs."
+    },
+    {
+      "id": "termination_notice_days",
+      "label": "Termination notice (days)",
+      "type": "integer",
+      "required": true,
+      "min": 1,
+      "max": 180,
+      "default": 30,
+      "help": "Notice either party must give to end the agreement early."
+    },
+    {
+      "id": "jurisdiction",
+      "label": "Governing jurisdiction",
+      "type": "text",
+      "required": true,
+      "max_length": 120,
+      "placeholder": "Karnataka, India",
+      "help": "Whose law governs the agreement."
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+# Pinned to what was actually installed and tested on Python 3.14.0 (Windows).
+
+# UI. Chosen over FastAPI+React because this is a single-user internal tool and
+# Streamlit removes the whole frontend build step.
+streamlit==1.65.0
+
+# Document templates. Gives us {{ placeholders }} and {% if %} for optional
+# sections without writing a string-substitution engine by hand.
+Jinja2==3.1.6
+
+# DOCX export. Pure-python, writes real Word files with headings and paragraphs.
+python-docx==1.2.0
+
+# HTTP client for the LLM provider. The provider is OpenAI-compatible, so a
+# plain POST is enough - no vendor SDK needed.
+requests==2.34.2
+
+# Reads the API key out of .env. Streamlit does not load .env itself, and the
+# edge cases (quoting, comments, export prefixes) are not worth hand-rolling.
+python-dotenv==1.2.4
+
+# Tests
+pytest==9.1.1
