@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date, datetime
+import re
 
 import jinja2
 
@@ -10,8 +11,7 @@ from docugen.llm import Clause
 from docugen.templates import Template
 
 
-# Where suggested clauses are inserted. They belong in the body of the
-# agreement, not after the signature block.
+# Suggested clauses must be inserted before the signature section.
 SIGNATURE_HEADING = "Signatures"
 
 
@@ -51,13 +51,13 @@ def assemble(
     user_input: dict,
     accepted_clauses: list[Clause] | None = None,
 ) -> Document:
+    """Render a template, insert accepted clauses, and number its sections."""
     values = _render_values(template, user_input)
 
     try:
         body_text = template.body_template.render(**values)
         subtitle = template.subtitle_template.render(**values)
     except jinja2.UndefinedError as exc:
-        # A template references a field that was not declared.
         raise AssemblyError(
             f"Template '{template.id}' refers to a field that is not "
             f"in its field list: {exc}"
@@ -75,6 +75,7 @@ def assemble(
 
 
 def _render_values(template: Template, user_input: dict) -> dict:
+    """Prepare and format the user-provided template values."""
     values = {}
 
     for field in template.fields:
@@ -91,6 +92,7 @@ def _render_values(template: Template, user_input: dict) -> dict:
 
 
 def _format_date(raw) -> str:
+    """Format dates as, for example, '15 October 2026'."""
     if isinstance(raw, datetime):
         raw = raw.date()
 
@@ -109,31 +111,44 @@ def _format_date(raw) -> str:
 
 
 def _parse_blocks(body_text: str) -> list[Block]:
+    """Parse headings and paragraphs without requiring blank lines.
+
+    A heading beginning with '## ' is recognized even when Jinja whitespace
+    control removes the blank line before or after it.
+    """
     blocks: list[Block] = []
+    paragraph_lines: list[str] = []
 
-    # Split on blank lines while preserving multiline paragraphs.
-    for chunk in body_text.split("\n\n"):
-        chunk = chunk.strip()
+    def flush_paragraph() -> None:
+        if paragraph_lines:
+            paragraph = "\n".join(
+                line.strip() for line in paragraph_lines
+            ).strip()
 
-        if not chunk:
+            if paragraph:
+                blocks.append(Block("paragraph", paragraph))
+
+            paragraph_lines.clear()
+
+    for raw_line in body_text.splitlines():
+        line = raw_line.strip()
+
+        if not line:
+            flush_paragraph()
             continue
 
-        lines = chunk.splitlines()
-
-        # A heading must occupy its own line.
-        if len(lines) == 1 and lines[0].strip().startswith("## "):
-            heading = lines[0].strip()[3:].strip()
+        if line.startswith("## "):
+            flush_paragraph()
+            heading = line[3:].strip()
 
             if heading:
                 blocks.append(Block("heading", heading))
 
             continue
 
-        paragraph = "\n".join(line.strip() for line in lines).strip()
+        paragraph_lines.append(line)
 
-        if paragraph:
-            blocks.append(Block("paragraph", paragraph))
-
+    flush_paragraph()
     return blocks
 
 
@@ -141,6 +156,7 @@ def _insert_clauses(
     blocks: list[Block],
     clauses: list[Clause],
 ) -> list[Block]:
+    """Insert only supplied, accepted clauses before the signatures."""
     if not clauses:
         return blocks
 
@@ -154,6 +170,7 @@ def _insert_clauses(
 
         for paragraph in clause.body.splitlines():
             paragraph = paragraph.strip()
+            paragraph = _clean_clause_body_lead(paragraph)
 
             if paragraph:
                 new_sections.append(Block("paragraph", paragraph))
@@ -161,7 +178,6 @@ def _insert_clauses(
     if not new_sections:
         return blocks
 
-    # Insert before the signature section, if it exists.
     for index, block in enumerate(blocks):
         if (
             block.kind == "heading"
@@ -169,21 +185,38 @@ def _insert_clauses(
         ):
             return blocks[:index] + new_sections + blocks[index:]
 
-    # If no signature heading exists, append the clauses.
+    # Templates without a signature heading receive clauses at the end.
     return blocks + new_sections
 
 
+def _clean_clause_body_lead(text: str) -> str:
+    """Remove a duplicated numbered and bold title at the start of a body.
+
+    Example:
+    '1. **Confidentiality Scope**: The Receiving Party shall...'
+
+    becomes:
+    'The Receiving Party shall...'
+
+    The clause's actual heading and section number are generated separately.
+    """
+    return re.sub(
+        r"^\s*\d+\.\s+\*\*[^*]+\*\*\s*:\s*",
+        "",
+        text,
+        count=1,
+    ).strip()
+
+
 def _number_headings(blocks: list[Block]) -> list[Block]:
+    """Number all headings sequentially, including inserted clauses."""
     numbered: list[Block] = []
     counter = 0
 
     for block in blocks:
         if block.kind == "heading":
             counter += 1
-
-            # Avoid numbering a heading twice if this function is reapplied.
-            heading = block.text.strip()
-            heading = _remove_existing_number(heading)
+            heading = _remove_existing_number(block.text.strip())
 
             numbered.append(
                 Block("heading", f"{counter}. {heading}")
@@ -195,7 +228,7 @@ def _number_headings(blocks: list[Block]) -> list[Block]:
 
 
 def _remove_existing_number(heading: str) -> str:
-    """Remove a leading integer section number, if present."""
+    """Remove an existing leading integer section number."""
     prefix, separator, remainder = heading.partition(". ")
 
     if separator and prefix.isdigit():
